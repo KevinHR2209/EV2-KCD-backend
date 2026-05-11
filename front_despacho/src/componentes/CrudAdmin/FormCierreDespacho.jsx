@@ -2,6 +2,8 @@ import { useForm } from "react-hook-form";
 import Swal from "sweetalert2";
 import axios from "axios";
 
+const API_DESPACHO = import.meta.env.VITE_API_DESPACHO;
+
 export const FormCierreDespacho = ({ despacho, onClose }) => {
   const { register, handleSubmit } = useForm();
 
@@ -16,13 +18,13 @@ export const FormCierreDespacho = ({ despacho, onClose }) => {
 
     try {
       await axios.put(
-        `http://192.168.320/api/v1/despachos/${despacho.idDespacho}`,
+        `${API_DESPACHO}/api/v1/despachos/${despacho.idDespacho}`,
         jsonData,
         {
-          headers:{
+          headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
-      }
+          }
         }
       );
       Swal.fire({
@@ -51,7 +53,6 @@ export const FormCierreDespacho = ({ despacho, onClose }) => {
           <input
             disabled={true}
             type="text"
-            placeholder="Ingresa fecha de despacho"
             className="border border-gray-300 rounded-lg block w-full p-1 text-slate-400"
             value={despacho.idDespacho}
           />
@@ -60,7 +61,6 @@ export const FormCierreDespacho = ({ despacho, onClose }) => {
           <label className="block font-bold mb-2">Fecha despacho</label>
           <input
             type="date"
-            placeholder="Elige patente de camión"
             className="border border-gray-300 rounded-lg block w-full text-slate-400 p-1"
             value={despacho.fechaDespacho}
             disabled={true}
@@ -80,7 +80,7 @@ export const FormCierreDespacho = ({ despacho, onClose }) => {
           <input
             type="number"
             defaultValue={despacho.intento}
-            className="border border-gray-300 rounded-lg block w-full  p-1"
+            className="border border-gray-300 rounded-lg block w-full p-1"
             {...register("intento", { required: true })}
           />
         </div>
@@ -88,7 +88,7 @@ export const FormCierreDespacho = ({ despacho, onClose }) => {
           <label className="block font-bold mb-2">Despacho entregado</label>
           <select
             defaultValue={false}
-            className="border border-gray-300 rounded-lg block w-full  p-1"
+            className="border border-gray-300 rounded-lg block w-full p-1"
             {...register("despachado", { required: true })}
           >
             <option value={false}>Despacho abierto</option>
@@ -122,7 +122,6 @@ export const FormCierreDespacho = ({ despacho, onClose }) => {
             value={despacho.valorCompra}
           />
         </div>
-
         <button
           className="py-6 px-14 rounded-lg bg-teal-600 text-white font-bold mb-14"
           type="submit"

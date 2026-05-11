@@ -2,6 +2,9 @@ import { useForm } from "react-hook-form";
 import Swal from "sweetalert2";
 import axios from "axios";
 
+const API_DESPACHO = import.meta.env.VITE_API_DESPACHO;
+const API_VENTAS = import.meta.env.VITE_API_VENTAS;
+
 export const FormDespacho = ({ venta, onClose }) => {
   const { register, handleSubmit } = useForm();
 
@@ -25,20 +28,20 @@ export const FormDespacho = ({ venta, onClose }) => {
 
     try {
       await axios.put(
-        `http://192.168.30/api/v1/ventas/${venta.idVenta}`,
+        `${API_VENTAS}/api/v1/ventas/${venta.idVenta}`,
         jsonDataSales,
         {
-          headers:{
+          headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
-      }
+          }
         }
       );
-      await axios.post("http://192.168.320/api/v1/despachos", jsonData, {
-        headers:{
+      await axios.post(`${API_DESPACHO}/api/v1/despachos`, jsonData, {
+        headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
-    }
+        }
       });
       Swal.fire({
         title: "Despacho registrado 🛻!",
@@ -51,6 +54,7 @@ export const FormDespacho = ({ venta, onClose }) => {
     }
     onClose();
   };
+
   return (
     <>
       <form
@@ -79,9 +83,7 @@ export const FormDespacho = ({ venta, onClose }) => {
           />
         </div>
         <div className="mb-5">
-          <label className="block font-bold mb-2">
-            Orden de compra asociado
-          </label>
+          <label className="block font-bold mb-2">Orden de compra asociado</label>
           <input
             type="number"
             disabled={true}
@@ -107,7 +109,6 @@ export const FormDespacho = ({ venta, onClose }) => {
             disabled={true}
           />
         </div>
-
         <button
           className="py-6 px-14 rounded-lg bg-teal-600 text-white font-bold mb-14"
           type="submit"
