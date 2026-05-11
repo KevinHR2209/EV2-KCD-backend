@@ -1,10 +1,8 @@
-version: "3.9"
-
 services:
 
   mysql:
     image: mysql:8.0
-    container_name: mysql_db
+    container_name: mysqldb
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root123
@@ -23,10 +21,10 @@ services:
 
   ms-despacho:
     build: ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO
-    container_name: ms_despacho
+    container_name: msdespacho
     restart: on-failure
     environment:
-      DB_HOST: mysql
+      DB_HOST: mysqldb
       DB_PORT: 3306
       DB_NAME: despacho_db
       DB_USERNAME: root
@@ -41,10 +39,10 @@ services:
 
   ms-ventas:
     build: ./back-Ventas_SpringBoot/Springboot-API-REST
-    container_name: ms_ventas
+    container_name: msventas
     restart: on-failure
     environment:
-      DB_HOST: mysql
+      DB_HOST: mysqldb
       DB_PORT: 3306
       DB_NAME: ventas_db
       DB_USERNAME: root
@@ -63,7 +61,7 @@ services:
       args:
         VITE_API_DESPACHO: http://localhost:8081
         VITE_API_VENTAS: http://localhost:8082
-    container_name: frontend_app
+    container_name: frontendapp
     ports:
       - "80:80"
     depends_on:
