@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitácora de Cambios — EJKEVIN</title>
+<style>
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --surface2: #f3f0ec;
+    --border: #dcd9d5;
+    --text: #28251d;
+    --muted: #7a7974;
+    --primary: #01696f;
+    --primary-light: #e0f0ef;
+    --success: #437a22;
+    --success-light: #e6f2df;
+    --warning: #964219;
+    --warning-light: #fdf0e8;
+    --error: #a12c7b;
+    --error-light: #fbeef6;
+    --blue: #006494;
+    --blue-light: #e0eef5;
+    --radius: 10px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+  [data-theme="dark"] {
+    --bg: #171614;
+    --surface: #1c1b19;
+    --surface2: #22211f;
+    --border: #393836;
+    --text: #cdccca;
+    --muted: #797876;
+    --primary: #4f98a3;
+    --primary-light: #1e3035;
+    --success: #6daa45;
+    --success-light: #1e2e18;
+    --warning: #bb653b;
+    --warning-light: #2a1a10;
+    --error: #d163a7;
+    --error-light: #2a1020;
+    --blue: #5591c7;
+    --blue-light: #0d2030;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  /* HEADER */
+  header {
+    background: var(--primary);
+    color: #fff;
+    padding: 40px 32px 32px;
+  }
+  header h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+  header p { opacity: .85; font-size: 14px; }
+  .header-meta {
+    display: flex; gap: 16px; margin-top: 18px; flex-wrap: wrap;
+  }
+  .badge {
+    background: rgba(255,255,255,0.18);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .4px;
+  }
+  /* TOGGLE */
+  .theme-toggle {
+    position: fixed; top: 16px; right: 20px;
+    background: rgba(255,255,255,0.15);
+    border: none; border-radius: 50%;
+    width: 40px; height: 40px;
+    cursor: pointer; font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+    z-index: 100;
+  }
+  /* LAYOUT */
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 20px 64px; }
+  /* RESUMEN */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 40px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+  }
+  .stat-card .num {
+    font-size: 32px; font-weight: 800;
+    color: var(--primary); line-height: 1;
+  }
+  .stat-card .label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  /* SECCIONES */
+  .section-title {
+    font-size: 19px; font-weight: 700;
+    margin: 40px 0 18px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary);
+    color: var(--text);
+  }
+  /* TARJETA CAMBIO */
+  .change-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 22px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .change-header {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 18px 22px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .change-num {
+    background: var(--primary);
+    color: #fff;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
+  }
+  .change-header-text h3 { font-size: 15px; font-weight: 700; }
+  .change-header-text .file-path {
+    font-family: 'Consolas', monospace;
+    font-size: 12px; color: var(--primary);
+    background: var(--primary-light);
+    padding: 2px 8px; border-radius: 4px;
+    display: inline-block; margin-top: 4px;
+  }
+  .change-body { padding: 18px 22px; }
+  /* TIPO BADGE */
+  .type-badge {
+    display: inline-block;
+    padding: 2px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: .4px; margin-bottom: 10px;
+  }
+  .type-nuevo { background: var(--success-light); color: var(--success); }
+  .type-fix   { background: var(--error-light);   color: var(--error);   }
+  .type-feat  { background: var(--blue-light);     color: var(--blue);    }
+  .type-docs  { background: var(--warning-light);  color: var(--warning); }
+  /* BLOQUE */
+  .block-label {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .6px;
+    color: var(--muted); margin: 14px 0 6px;
+  }
+  .justification {
+    background: var(--primary-light);
+    border-left: 3px solid var(--primary);
+    border-radius: 0 6px 6px 0;
+    padding: 12px 16px;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  pre {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    border-radius: 8px;
+    padding: 16px 18px;
+    font-size: 12.5px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    overflow-x: auto;
+    line-height: 1.6;
+    margin: 6px 0 12px;
+  }
+  .diff-add { color: #6dbf6d; }
+  .diff-del { color: #f47474; }
+  .diff-comment { color: #8a8a6b; }
+  /* TIMELINE */
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before {
+    content: '';
+    position: absolute; left: 8px; top: 0; bottom: 0;
+    width: 2px; background: var(--border);
+  }
+  .timeline-item { position: relative; margin-bottom: 22px; }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -24px; top: 6px;
+    width: 12px; height: 12px;
+    background: var(--primary);
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+  }
+  .timeline-item .time {
+    font-size: 11px; color: var(--muted);
+    font-family: monospace;
+  }
+  .timeline-item .desc {
+    font-size: 14px; margin-top: 2px;
+  }
+  .timeline-item .commit {
+    font-size: 11px; font-family: monospace;
+    color: var(--primary); margin-top: 2px;
+  }
+  /* ARQUITECTURA */
+  .arch-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 22px;
+    box-shadow: var(--shadow);
+  }
+  .arch-box pre {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  /* TABLE */
+  table {
+    width: 100%; border-collapse: collapse;
+    background: var(--surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-bottom: 22px;
+  }
+  th {
+    background: var(--surface2);
+    padding: 10px 14px;
+    font-size: 12px; font-weight: 700;
+    text-align: left; color: var(--muted);
+    text-transform: uppercase; letter-spacing: .4px;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13.5px;
+  }
+  tr:last-child td { border-bottom: none; }
+  td code {
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    background: var(--surface2);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  /* ALERT */
+  .alert {
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 22px;
+    font-size: 14px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .alert-success { background: var(--success-light); border-left: 3px solid var(--success); }
+  .alert-info    { background: var(--blue-light);    border-left: 3px solid var(--blue);    }
+  .alert-icon { font-size: 18px; flex-shrink: 0; }
+  /* FOOTER */
+  footer {
+    text-align: center; padding: 32px;
+    color: var(--muted); font-size: 13px;
+    border-top: 1px solid var(--border);
+  }
+  @media (max-width: 600px) {
+    header { padding: 28px 16px; }
+    .container { padding: 20px 12px 48px; }
+    .change-header { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">🌙</button>
+
+<header>
+  <h1>📋 Bitácora de Cambios — EJKEVIN</h1>
+  <p>Plataforma Innovatech Chile · ISY1101 - Introducción a Herramientas DevOps · EP2</p>
+  <div class="header-meta">
+    <span class="badge">📦 5 archivos modificados/creados</span>
+    <span class="badge">✅ Stack local funcionando</span>
+    <span class="badge">🌿 Rama deploy creada</span>
+    <span class="badge">📅 Mayo 2026</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- RESUMEN ESTADÍSTICO -->
+  <div class="summary-grid" style="margin-top:32px">
+    <div class="stat-card">
+      <div class="num">4</div>
+      <div class="label">Contenedores Docker corriendo</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">5</div>
+      <div class="label">Archivos creados/modificados</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">2</div>
+      <div class="label">Ramas en GitHub (main + deploy)</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">1</div>
+      <div class="label">Pipeline CI/CD configurado</div>
+    </div>
+  </div>
+
+  <!-- ARQUITECTURA -->
+  <h2 class="section-title">🏗️ Arquitectura del sistema</h2>
+  <div class="arch-box">
+    <p style="margin-bottom:14px;font-size:14px;color:var(--muted)">El sistema está compuesto por 4 servicios orquestados con Docker Compose, todos en la misma red interna <code>app-network</code>. Solo el frontend es accesible desde el exterior.</p>
+    <pre>Internet
+   │
+   ▼
+┌─────────────────────────────┐
+│  EC2 Pública (Frontend)     │
+│  Puerto 80 → Nginx          │  ← Acceso público
+│  Contenedor: frontendapp    │
+└──────────────┬──────────────┘
+               │ Red privada (app-network)
+               ▼
+┌─────────────────────────────┐
+│  EC2 Privada (Backend)      │
+│  ├── msdespacho  :8081      │  ← Solo accesible desde frontend
+│  ├── msventas    :8082      │  ← Solo accesible desde frontend
+│  └── mysqldb     :3306      │  ← Solo accesible desde backends
+└─────────────────────────────┘</pre>
+  </div>
+
+  <!-- ESTADO ANTES -->
+  <h2 class="section-title">⚠️ Estado del proyecto ANTES de los cambios</h2>
+  <div class="alert alert-info">
+    <span class="alert-icon">🔍</span>
+    <div>Al analizar el repositorio original se identificaron los siguientes problemas que impedían contenedorizar y desplegar correctamente el stack completo.</div>
+  </div>
+  <table>
+    <tr><th>Problema encontrado</th><th>Impacto</th></tr>
+    <tr><td>El <code>docker-compose.yml</code> tenía credenciales hardcodeadas directamente en el YAML</td><td>Expone contraseñas en el repositorio público. Violación de buenas prácticas de seguridad.</td></tr>
+    <tr><td>No existía archivo <code>.env.example</code></td><td>Cualquier persona que clonara el repo no sabía qué variables configurar para levantar el stack.</td></tr>
+    <tr><td>MySQL solo creaba <code>despacho_db</code> pero <code>ms-ventas</code> necesita <code>ventas_db</code></td><td>El microservicio de ventas fallaba al arrancar por base de datos inexistente.</td></tr>
+    <tr><td>No existía <code>mysql-init/init.sql</code></td><td>Sin script de inicialización, la segunda base de datos debía crearse manualmente.</td></tr>
+    <tr><td>No existía archivo <code>README.md</code> en la raíz</td><td>Sin documentación técnica para levantar el proyecto ni explicar la arquitectura.</td></tr>
+    <tr><td>No existía pipeline CI/CD (<code>.github/workflows/deploy.yml</code>)</td><td>Los despliegues debían hacerse manualmente, sin automatización.</td></tr>
+    <tr><td>No existía rama <code>deploy</code> en GitHub</td><td>El pipeline no tenía rama gatillo para ejecutarse.</td></tr>
+  </table>
+
+  <!-- CAMBIOS DETALLADOS -->
+  <h2 class="section-title">🔧 Cambios realizados — detalle técnico</h2>
+
+  <!-- CAMBIO 1 -->
+  <div class="change-card">
+    <div class="change-header">
+      <div class="change-num">1</div>
+      <div class="change-header-text">
+        <h3>Refactorización del docker-compose.yml</h3>
+        <span class="file-path">docker-compose.yml</span>
+      </div>
+    </div>
+    <div class="change-body">
+      <span class="type-badge type-fix">FIX</span>
+      <div class="block-label">🎯 Justificación</div>
+      <div class="justification">
+        El archivo original tenía las credenciales de base de datos escritas directamente en el YAML
+        (ej: <code>MYSQL_ROOT_PASSWORD: root123</code>). Esto significa que cualquier persona con acceso
+        al repositorio puede ver las contraseñas. La solución estándar de la industria es usar
+        <strong>variables de entorno inyectadas desde un archivo <code>.env</code></strong> que nunca
+        se sube al repositorio. Además, se agregó un <strong>healthcheck</strong> a MySQL para que
+        Spring Boot no intente conectarse antes de que la base de datos esté lista (este era el motivo
+        principal de los errores de arranque).
+      </div>
+
+      <div class="block-label">❌ Antes</div>
+      <pre><span class="diff-comment"># Problema: credenciales visibles y sin healthcheck</span>
+<span class="diff-del">  mysql:</span>
+<span class="diff-del">    environment:</span>
+<span class="diff-del">      MYSQL_ROOT_PASSWORD: root123</span>
+<span class="diff-del">      MYSQL_DATABASE: despacho_db</span>
+<span class="diff-comment">  # Sin healthcheck → Spring Boot falla al conectar</span>
+<span class="diff-del">  ms-ventas:</span>
+<span class="diff-del">    environment:</span>
+<span class="diff-del">      DB_PASSWORD: root123  # hardcodeado</span></pre>
+
+      <div class="block-label">✅ Después</div>
+      <pre><span class="diff-comment"># Solución: variables desde .env + healthcheck en MySQL</span>
+<span class="diff-add">  mysql:</span>
+<span class="diff-add">    environment:</span>
+<span class="diff-add">      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}  # viene del .env</span>
+<span class="diff-add">      MYSQL_DATABASE: despacho_db</span>
+<span class="diff-add">    volumes:</span>
+<span class="diff-add">      - mysql_data:/var/lib/mysql          # persistencia</span>
+<span class="diff-add">      - ./mysql-init:/docker-entrypoint-initdb.d  # crea ventas_db</span>
+<span class="diff-add">    healthcheck:</span>
+<span class="diff-add">      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]</span>
+<span class="diff-add">      interval: 10s</span>
+<span class="diff-add">      timeout: 5s</span>
+<span class="diff-add">      retries: 5</span>
+<span class="diff-add">  ms-ventas:</span>
+<span class="diff-add">    environment:</span>
+<span class="diff-add">      DB_PASSWORD: ${DB_PASSWORD}  # no expuesto</span>
+<span class="diff-add">    depends_on:</span>
+<span class="diff-add">      mysql:</span>
+<span class="diff-add">        condition: service_healthy  # espera a MySQL</span></pre>
+
+      <div class="block-label">📌 Conceptos aplicados</div>
+      <ul style="font-size:14px;padding-left:18px;">
+        <li><strong>Separación de configuración y código</strong> (12-Factor App, Factor III)</li>
+        <li><strong>Healthcheck</strong>: garantiza orden de arranque correcto entre contenedores dependientes</li>
+        <li><strong>Named volume</strong> (<code>mysql_data</code>): los datos persisten aunque se detenga el contenedor</li>
+        <li><strong>Build args</strong> en el frontend: las URLs del backend se inyectan en tiempo de compilación de Vite</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CAMBIO 2 -->
+  <div class="change-card">
+    <div class="change-header">
+      <div class="change-num">2</div>
+      <div class="change-header-text">
+        <h3>Creación del script de inicialización de MySQL</h3>
+        <span class="file-path">mysql-init/init.sql</span>
+      </div>
+    </div>
+    <div class="change-body">
+      <span class="type-badge type-nuevo">NUEVO</span>
+      <div class="block-label">🎯 Justificación</div>
+      <div class="justification">
+        MySQL tiene una funcionalidad oficial: cualquier archivo <code>.sql</code> colocado en
+        <code>/docker-entrypoint-initdb.d/</code> se ejecuta automáticamente la primera vez
+        que se crea la base de datos. Se aprovecha este mecanismo para crear <strong>ambas
+        bases de datos</strong> (<code>despacho_db</code> y <code>ventas_db</code>) sin
+        intervención manual. Sin este archivo, <code>ms-ventas</code> lanzaba un error al
+        intentar conectarse a <code>ventas_db</code> que no existía.
+      </div>
+      <div class="block-label">✅ Contenido del archivo</div>
+      <pre><span class="diff-add">CREATE DATABASE IF NOT EXISTS despacho_db</span>
+<span class="diff-add">  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;</span>
+
+<span class="diff-add">CREATE DATABASE IF NOT EXISTS ventas_db</span>
+<span class="diff-add">  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;</span></pre>
+      <div class="block-label">📌 Por qué <code>utf8mb4</code></div>
+      <p style="font-size:14px">Es el encoding recomendado en MySQL 8 porque soporta el conjunto completo de Unicode incluyendo emojis y caracteres especiales del español (tildes, ñ). <code>utf8</code> clásico solo cubre 3 bytes y puede causar errores con caracteres especiales.</p>
+    </div>
+  </div>
+
+  <!-- CAMBIO 3 -->
+  <div class="change-card">
+    <div class="change-header">
+      <div class="change-num">3</div>
+      <div class="change-header-text">
+        <h3>Creación del archivo de variables de entorno plantilla</h3>
+        <span class="file-path">.env.example</span>
+      </div>
+    </div>
+    <div class="change-body">
+      <span class="type-badge type-nuevo">NUEVO</span>
+      <div class="block-label">🎯 Justificación</div>
+      <div class="justification">
+        El archivo <code>.env</code> real <strong>nunca debe subirse a GitHub</strong> porque contiene
+        contraseñas. Sin embargo, los colaboradores necesitan saber qué variables deben configurar.
+        La solución estándar es mantener un <code>.env.example</code> con los nombres de todas las
+        variables y valores de ejemplo seguros. Cada desarrollador copia este archivo como <code>.env</code>
+        y completa sus propios valores.
+      </div>
+      <div class="block-label">✅ Contenido</div>
+      <pre><span class="diff-comment"># MySQL</span>
+<span class="diff-add">MYSQL_ROOT_PASSWORD=root123</span>
+<span class="diff-add">DB_USERNAME=root</span>
+<span class="diff-add">DB_PASSWORD=root123</span>
+
+<span class="diff-comment"># Frontend (URLs del backend)</span>
+<span class="diff-comment"># LOCAL: usar localhost</span>
+<span class="diff-comment"># PRODUCCION: usar IP publica de EC2 backend</span>
+<span class="diff-add">VITE_API_DESPACHO=http://localhost:8081</span>
+<span class="diff-add">VITE_API_VENTAS=http://localhost:8082</span></pre>
+      <div class="block-label">📌 Flujo de trabajo</div>
+      <ul style="font-size:14px;padding-left:18px;">
+        <li><code>.env.example</code> → se sube a GitHub (valores de ejemplo)</li>
+        <li><code>.env</code> → se agrega a <code>.gitignore</code>, NUNCA se sube</li>
+        <li>En producción: las variables se inyectan como <strong>GitHub Secrets</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CAMBIO 4 -->
+  <div class="change-card">
+    <div class="change-header">
+      <div class="change-num">4</div>
+      <div class="change-header-text">
+        <h3>Creación del README técnico completo</h3>
+        <span class="file-path">README.md</span>
+      </div>
+    </div>
+    <div class="change-body">
+      <span class="type-badge type-docs">DOCS</span>
+      <div class="block-label">🎯 Justificación</div>
+      <div class="justification">
+        La pauta de evaluación EP2 exige documentación clara del proyecto. El README es el
+        primer archivo que evalúan los profesores al revisar el repositorio. Un README bien
+        estructurado demuestra comprensión de la arquitectura y permite que cualquier persona
+        levante el proyecto en menos de 5 minutos.
+      </div>
+      <div class="block-label">✅ Secciones incluidas en el README</div>
+      <table>
+        <tr><th>Sección</th><th>Por qué está</th></tr>
+        <tr><td>Arquitectura ASCII</td><td>Visualiza sin herramientas externas la topología EC2 pública/privada</td></tr>
+        <tr><td>Estructura de carpetas</td><td>Permite entender el proyecto antes de abrirlo</td></tr>
+        <tr><td>Ejecución local paso a paso</td><td>Reduce a 3 comandos levantar el stack completo</td></tr>
+        <tr><td>Tabla de URLs de verificación</td><td>Permite comprobar cada servicio rápidamente</td></tr>
+        <tr><td>Justificación de named volumes</td><td>Explica la decisión de persistencia (requisito de la pauta)</td></tr>
+        <tr><td>Descripción de Dockerfiles</td><td>Explica el multi-stage build y usuario no-root</td></tr>
+        <tr><td>Tabla de variables de entorno</td><td>Documenta cada variable con valor local y de producción</td></tr>
+        <tr><td>Diagrama del pipeline CI/CD</td><td>Explica el flujo automático de despliegue</td></tr>
+        <tr><td>Tabla de GitHub Secrets</td><td>Lista exacta de secrets que el evaluador revisará</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- CAMBIO 5 -->
+  <div class="change-card">
+    <div class="change-header">
+      <div class="change-num">5</div>
+      <div class="change-header-text">
+        <h3>Creación del pipeline CI/CD con GitHub Actions</h3>
+        <span class="file-path">.github/workflows/deploy.yml</span>
+      </div>
+    </div>
+    <div class="change-body">
+      <span class="type-badge type-feat">FEAT</span>
+      <div class="block-label">🎯 Justificación</div>
+      <div class="justification">
+        La pauta EP2 exige un pipeline que se active automáticamente con push a la rama
+        <strong>deploy</strong>. El pipeline elimina la necesidad de conectarse manualmente
+        a cada servidor para desplegar: al hacer <code>git push origin deploy</code>, GitHub
+        Actions hace el build, sube las imágenes a Docker Hub y despliega en ambas EC2
+        automáticamente.
+      </div>
+      <div class="block-label">✅ Etapas del pipeline</div>
+      <table>
+        <tr><th>#</th><th>Etapa</th><th>Qué hace</th></tr>
+        <tr><td>1</td><td>Checkout</td><td>Descarga el código del repositorio en el runner</td></tr>
+        <tr><td>2</td><td>Login Docker Hub</td><td>Se autentica con el usuario/token de Docker Hub</td></tr>
+        <tr><td>3</td><td>Build + Push Frontend</td><td>Compila React+Vite con las URLs del backend e inyecta ARGs</td></tr>
+        <tr><td>4</td><td>Build + Push ms-despacho</td><td>Compila el JAR con Maven y genera imagen Alpine</td></tr>
+        <tr><td>5</td><td>Build + Push ms-ventas</td><td>Compila el JAR con Maven y genera imagen Alpine</td></tr>
+        <tr><td>6</td><td>Deploy EC2 Backend</td><td>SSH a EC2 privada → git pull → crea .env → docker compose up</td></tr>
+        <tr><td>7</td><td>Deploy EC2 Frontend</td><td>SSH a EC2 pública → git pull → crea .env → docker compose up</td></tr>
+      </table>
+      <div class="block-label">✅ GitHub Secrets utilizados</div>
+      <table>
+        <tr><th>Secret</th><th>Para qué sirve</th><th>Estado</th></tr>
+        <tr><td><code>DOCKERHUB_USERNAME</code></td><td>Login al registry</td><td>⏳ Pendiente configurar</td></tr>
+        <tr><td><code>DOCKERHUB_TOKEN</code></td><td>Token de autenticación Docker Hub</td><td>⏳ Pendiente configurar</td></tr>
+        <tr><td><code>EC2_HOST_FRONT</code></td><td>IP pública EC2 frontend</td><td>⏳ Pendiente (falta AWS)</td></tr>
+        <tr><td><code>EC2_HOST_BACK</code></td><td>IP privada EC2 backend</td><td>⏳ Pendiente (falta AWS)</td></tr>
+        <tr><td><code>EC2_USER</code></td><td>Usuario SSH (<code>ec2-user</code>)</td><td>⏳ Pendiente (falta AWS)</td></tr>
+        <tr><td><code>SSH_PRIVATE_KEY</code></td><td>Clave .pem para conectarse a EC2</td><td>⏳ Pendiente (falta AWS)</td></tr>
+        <tr><td><code>MYSQL_ROOT_PASSWORD</code></td><td>Contraseña MySQL en producción</td><td>⏳ Pendiente configurar</td></tr>
+        <tr><td><code>DB_PASSWORD</code></td><td>Contraseña BD en producción</td><td>⏳ Pendiente configurar</td></tr>
+        <tr><td><code>VITE_API_DESPACHO</code></td><td>URL pública ms-despacho en EC2</td><td>⏳ Pendiente (falta AWS)</td></tr>
+        <tr><td><code>VITE_API_VENTAS</code></td><td>URL pública ms-ventas en EC2</td><td>⏳ Pendiente (falta AWS)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- CAMBIO 6 -->
+  <div class="change-card">
+    <div class="change-header">
+      <div class="change-num">6</div>
+      <div class="change-header-text">
+        <h3>Creación de la rama deploy en GitHub</h3>
+        <span class="file-path">git branch deploy</span>
+      </div>
+    </div>
+    <div class="change-body">
+      <span class="type-badge type-feat">FEAT</span>
+      <div class="block-label">🎯 Justificación</div>
+      <div class="justification">
+        El pipeline <code>deploy.yml</code> está configurado con el trigger
+        <code>on: push: branches: [deploy]</code>. Esto significa que el pipeline
+        <strong>solo se activa cuando hay un push a la rama deploy</strong>, nunca en main.
+        Esta es una práctica estándar de GitFlow: <strong>main</strong> es el código estable,
+        <strong>deploy</strong> es la rama que gatilla el despliegue a producción.
+      </div>
+      <div class="block-label">✅ Comandos ejecutados</div>
+      <pre><span class="diff-add">git checkout -b deploy</span>
+<span class="diff-add">git push -u origin deploy</span>
+<span class="diff-comment"># Resultado: rama deploy creada localmente y en GitHub</span></pre>
+      <div class="block-label">📌 Flujo de trabajo con las ramas</div>
+      <ul style="font-size:14px;padding-left:18px;">
+        <li>Desarrollas en <code>main</code> (o ramas de feature)</li>
+        <li>Cuando quieres desplegar: <code>git push origin main:deploy</code></li>
+        <li>GitHub Actions detecta el push y ejecuta el pipeline automáticamente</li>
+        <li>En ~5 minutos la nueva versión está en producción en AWS</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <h2 class="section-title">📅 Línea de tiempo de commits</h2>
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="time">12 May 2026 · 19:52 UTC</div>
+      <div class="desc">🔧 <strong>fix:</strong> corregir docker-compose — variables desde .env, montar init.sql para ventas_db</div>
+      <div class="commit">commit: 6ce06b4</div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">12 May 2026 · 19:52 UTC</div>
+      <div class="desc">✨ <strong>feat:</strong> agregar script init.sql para crear despacho_db y ventas_db</div>
+      <div class="commit">commit: f5f63d5</div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">12 May 2026 · 19:52 UTC</div>
+      <div class="desc">✨ <strong>feat:</strong> agregar .env.example raíz con todas las variables del stack</div>
+      <div class="commit">commit: a9f7a26</div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">12 May 2026 · 19:53 UTC</div>
+      <div class="desc">📝 <strong>docs:</strong> agregar README completo con arquitectura, instrucciones y justificación técnica</div>
+      <div class="commit">commit: c628eb4</div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">12 May 2026 · 19:54 UTC</div>
+      <div class="desc">✨ <strong>feat:</strong> agregar workflow CI/CD GitHub Actions para rama deploy</div>
+      <div class="commit">commit: 43a6d0e</div>
+    </div>
+    <div class="timeline-item">
+      <div class="time">12 May 2026 · Local</div>
+      <div class="desc">🌿 <strong>branch:</strong> creación de rama deploy y push a GitHub</div>
+      <div class="commit">git push -u origin deploy ✅</div>
+    </div>
+  </div>
+
+  <!-- ESTADO ACTUAL -->
+  <h2 class="section-title">✅ Estado actual del proyecto</h2>
+  <div class="alert alert-success">
+    <span class="alert-icon">✅</span>
+    <div>El stack completo <strong>levanta correctamente de forma local</strong>. Los 4 contenedores (mysqldb, msdespacho, msventas, frontendapp) arrancan en orden, con healthcheck y persistencia de datos.</div>
+  </div>
+  <table>
+    <tr><th>Ítem</th><th>Estado</th></tr>
+    <tr><td>docker-compose.yml con variables desde .env</td><td>✅ Completado</td></tr>
+    <tr><td>mysql-init/init.sql crea ambas bases de datos</td><td>✅ Completado</td></tr>
+    <tr><td>.env.example documentado en la raíz</td><td>✅ Completado</td></tr>
+    <tr><td>README.md completo y técnico</td><td>✅ Completado</td></tr>
+    <tr><td>.github/workflows/deploy.yml configurado</td><td>✅ Completado</td></tr>
+    <tr><td>Rama deploy creada en GitHub</td><td>✅ Completado</td></tr>
+    <tr><td>Stack levanta localmente (4 contenedores)</td><td>✅ Verificado</td></tr>
+    <tr><td>Crear cuenta Docker Hub + Access Token</td><td>⏳ Pendiente</td></tr>
+    <tr><td>Crear EC2 pública (frontend) en AWS</td><td>⏳ Pendiente</td></tr>
+    <tr><td>Crear EC2 privada (backend+DB) en AWS</td><td>⏳ Pendiente</td></tr>
+    <tr><td>Configurar Security Groups en AWS</td><td>⏳ Pendiente</td></tr>
+    <tr><td>Agregar GitHub Secrets (Docker Hub + EC2)</td><td>⏳ Pendiente</td></tr>
+    <tr><td>Verificar pipeline CI/CD ejecutándose</td><td>⏳ Pendiente</td></tr>
+    <tr><td>Verificar app funcionando en AWS</td><td>⏳ Pendiente</td></tr>
+  </table>
+
+  <!-- PRÓXIMOS PASOS -->
+  <h2 class="section-title">🔜 Próximos pasos</h2>
+  <div class="change-card">
+    <div class="change-body">
+      <ol style="font-size:14px;padding-left:18px;line-height:2;">
+        <li><strong>Crear cuenta en Docker Hub</strong> + generar Access Token</li>
+        <li><strong>Crear EC2 pública</strong> en AWS (frontend, puerto 80 abierto al mundo)</li>
+        <li><strong>Crear EC2 privada</strong> en AWS (backend, solo accesible desde EC2 frontend)</li>
+        <li><strong>Configurar Security Groups</strong> correctamente en AWS</li>
+        <li><strong>Instalar Docker</strong> en ambas EC2</li>
+        <li><strong>Agregar los 10 GitHub Secrets</strong> en Settings → Secrets → Actions</li>
+        <li><strong>Hacer push a rama deploy</strong> y verificar que el pipeline se ejecuta</li>
+        <li><strong>Verificar la app en la IP pública</strong> de la EC2 frontend</li>
+      </ol>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  EJKEVIN · ISY1101 - Introducción a Herramientas DevOps · EP2 · Mayo 2026
+</footer>
+
+<script>
+  function toggleTheme() {
+    const html = document.documentElement;
+    const btn = document.querySelector('.theme-toggle');
+    if (html.getAttribute('data-theme') === 'light') {
+      html.setAttribute('data-theme', 'dark');
+      btn.textContent = '☀️';
+    } else {
+      html.setAttribute('data-theme', 'light');
+      btn.textContent = '🌙';
+    }
+  }
+</script>
+</body>
+</html>
