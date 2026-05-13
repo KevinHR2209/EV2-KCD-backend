@@ -48,7 +48,7 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST_BACK }}
           username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd ~/EJKEVIN
             git pull origin deploy
