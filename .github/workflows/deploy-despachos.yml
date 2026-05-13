@@ -3,7 +3,7 @@ name: CI/CD - Backend Despachos
 on:
   push:
     branches:
-      - main
+      - deploy
 
 jobs:
   build-and-deploy:
