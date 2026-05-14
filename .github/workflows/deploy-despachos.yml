@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - deploy
-    paths:
-      - 'back-Despachos_SpringBoot/**'
 
 jobs:
   build-and-deploy:
@@ -16,45 +14,39 @@ jobs:
       - name: Checkout codigo
         uses: actions/checkout@v4
 
-      - name: Configurar AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Login a Docker Hub
+        uses: docker/login-action@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Login a Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build, tag y push imagen a ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ secrets.ECR_REPO_DESPACHOS }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          cd back-Despachos_SpringBoot
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+      - name: Build y Push imagen ms-despacho
+        uses: docker/build-push-action@v5
+        with:
+          context: ./back-Despachos_SpringBoot
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ev2-kcd-ms-despacho:latest
 
       - name: Deploy en EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_HOST_BACKEND }}
+          host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
-            docker pull ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO_DESPACHOS }}:latest
-            docker stop back-despachos || true
-            docker rm back-despachos || true
+            cd /home/ec2-user
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ev2-kcd-ms-despacho:latest
+            docker stop ms-despacho || true
+            docker rm ms-despacho || true
+            docker network create backend-net || true
             docker run -d \
-              --name back-despachos \
+              --name ms-despacho \
+              --network backend-net \
               --restart unless-stopped \
-              -p 8080:8080 \
-              -e SPRING_DATASOURCE_URL=${{ secrets.DB_URL }} \
-              -e SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USER }} \
-              -e SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO_DESPACHOS }}:latest
+              -p 8081:8081 \
+              -e DB_ENDPOINT=mysqldb \
+              -e DB_PORT=3306 \
+              -e DB_NAME=despacho_db \
+              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              ${{ secrets.DOCKERHUB_USERNAME }}/ev2-kcd-ms-despacho:latest
