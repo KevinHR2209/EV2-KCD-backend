@@ -23,7 +23,7 @@ jobs:
       - name: Build y Push imagen ms-ventas
         uses: docker/build-push-action@v5
         with:
-          context: ./back-Ventas_SpringBoot/Springboot-API-REST
+          context: ./back-Ventas_SpringBoot
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/ev2-kcd-ms-ventas:latest
 
@@ -37,11 +37,13 @@ jobs:
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ev2-kcd-ms-ventas:latest
             docker stop ms-ventas || true
             docker rm ms-ventas || true
+            docker network create backend-net || true
             docker run -d \
               --name ms-ventas \
+              --network backend-net \
               --restart unless-stopped \
               -p 8082:8082 \
-              -e DB_HOST=mysqldb \
+              -e DB_ENDPOINT=mysqldb \
               -e DB_PORT=3306 \
               -e DB_NAME=ventas_db \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \

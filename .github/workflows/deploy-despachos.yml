@@ -23,7 +23,7 @@ jobs:
       - name: Build y Push imagen ms-despacho
         uses: docker/build-push-action@v5
         with:
-          context: ./back-Despachos_SpringBoot/Springboot-API-REST-DESPACHO
+          context: ./back-Despachos_SpringBoot
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/ev2-kcd-ms-despacho:latest
 
@@ -37,11 +37,13 @@ jobs:
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ev2-kcd-ms-despacho:latest
             docker stop ms-despacho || true
             docker rm ms-despacho || true
+            docker network create backend-net || true
             docker run -d \
               --name ms-despacho \
+              --network backend-net \
               --restart unless-stopped \
               -p 8081:8081 \
-              -e DB_HOST=mysqldb \
+              -e DB_ENDPOINT=mysqldb \
               -e DB_PORT=3306 \
               -e DB_NAME=despacho_db \
               -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
