@@ -5,11 +5,11 @@ FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
 # Copiar solo el pom primero para aprovechar cache de dependencias
-COPY pom.xml .
+COPY Springboot-API-REST/pom.xml .
 RUN mvn dependency:go-offline -B
 
 # Copiar el codigo fuente y compilar
-COPY src ./src
+COPY Springboot-API-REST/src ./src
 RUN mvn package -DskipTests -B
 
 # =============================================
@@ -30,6 +30,6 @@ RUN chown appuser:appgroup app.jar
 
 USER appuser
 
-EXPOSE 8081
+EXPOSE 8082
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
